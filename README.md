@@ -11,5 +11,5 @@ sh build.sh
 ## 使用方法
 ```text
 # 双击有风险, 双击需谨慎
-讲OdMediaPickerRelease.exe拖拽到需要整理的文件夹内，双击运行即可
+将OdMediaPickerRelease.exe拖拽到需要整理的文件夹内，双击运行即可
 ```
