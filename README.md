@@ -1,6 +1,15 @@
-# media-picker
+# 根据视频/图片分辨率分组工具
 
-双击快速整理视频和图片
+- 依赖ffmpeg, https://ffmpeg.org/download.html
+- https://github.com/BtbN/FFmpeg-Builds/releases
 
-# 演示视频
-xxxxxx
+## 构建编译
+```shell
+sh build.sh
+```
+
+## 使用方法
+```text
+# 双击有风险, 双击需谨慎
+讲OdMediaPickerRelease.exe拖拽到需要整理的文件夹内，双击运行即可
+```
