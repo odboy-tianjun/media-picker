@@ -28,6 +28,7 @@ var supportImageTypes = []string{
 
 // 水平图片
 var normalImageList []string
+var horizontalUnHandleImageList []string
 var horizontalGifImageList []string
 var horizontal2KImageList []string
 var horizontal1KImageList []string
@@ -43,11 +44,14 @@ var horizontalHKImageList []string
 // 标准横向图片
 var horizontalStandard720PImageList []string
 var horizontalStandard1080PImageList []string
+var horizontalStandard2KImageList []string
 var horizontalStandard4KImageList []string
+var horizontalStandard5KImageList []string
 var horizontalStandard8KImageList []string
 
 // 垂直图片
 var verticalGifImageList []string
+var verticalUnHandleImageList []string
 var vertical1KImageList []string
 var vertical2KImageList []string
 var vertical3KImageList []string
@@ -60,6 +64,7 @@ var vertical9KImageList []string
 var verticalHKImageList []string
 
 // 等比图片
+var squareUnHandleImageList []string
 var squareGifImageList []string
 var square1KImageList []string
 var square2KImageList []string
@@ -71,13 +76,6 @@ var square7KImageList []string
 var square8KImageList []string
 var square9KImageList []string
 var squareHKImageList []string
-
-// 标准等比图片
-var squareStandard720PImageList []string
-var squareStandard1080PImageList []string
-var squareStandard4KImageList []string
-var squareStandard8KImageList []string
-
 var psdImageList []string
 
 func DoHandleImage(rootDir string) {
@@ -173,7 +171,7 @@ func doPickImageFile(uid string, rootDir string, imagePath2WidthHeightMap map[st
 			handleVerticalImage(currentImagePath, height, suffix)
 			continue
 		}
-		handleSquareImage(currentImagePath, width, height, suffix)
+		handleSquareImage(currentImagePath, width, suffix)
 	}
 	moveNormalImage(rootDir, uid)
 	moveHorizontalImage(rootDir, uid)
@@ -183,6 +181,7 @@ func doPickImageFile(uid string, rootDir string, imagePath2WidthHeightMap map[st
 
 func moveSquareImage(rootDir string, uid string) {
 	pathSeparator := string(os.PathSeparator)
+	squareUnHandleImagePath := rootDir + pathSeparator + uid + "_图片_等比_未处理"
 	squareGifImagePath := rootDir + pathSeparator + uid + "_图片_等比_GIF"
 	square1KImagePath := rootDir + pathSeparator + uid + "_图片_等比_1k"
 	square2KImagePath := rootDir + pathSeparator + uid + "_图片_等比_2k"
@@ -194,6 +193,10 @@ func moveSquareImage(rootDir string, uid string) {
 	square8KImagePath := rootDir + pathSeparator + uid + "_图片_等比_8k"
 	square9KImagePath := rootDir + pathSeparator + uid + "_图片_等比_9k"
 	squareHKImagePath := rootDir + pathSeparator + uid + "_图片_等比_原图"
+	if len(squareUnHandleImageList) > 0 {
+		util.CreateDir(squareUnHandleImagePath)
+		doMoveFileToDir(squareUnHandleImageList, squareUnHandleImagePath)
+	}
 	if len(squareGifImageList) > 0 {
 		util.CreateDir(squareGifImagePath)
 		doMoveFileToDir(squareGifImageList, squareGifImagePath)
@@ -240,53 +243,36 @@ func moveSquareImage(rootDir string, uid string) {
 	}
 }
 
-func handleSquareImage(currentImagePath string, width int, height int, suffix string) {
+func handleSquareImage(currentImagePath string, width int, suffix string) {
 	if strings.EqualFold(suffix, ".gif") {
 		squareGifImageList = append(squareGifImageList, currentImagePath)
 		return
 	}
-	if width < 1000 {
+	if width < caleHorizontalPix(1) {
 		normalImageList = append(normalImageList, currentImagePath)
-	} else if width >= 1000 && width < 2000 {
-		// 1280 x 720 -> 720p
-		if width == 1280 && height == 720 {
-			squareStandard720PImageList = append(squareStandard720PImageList, currentImagePath)
-			return
-		}
-		// 1920 x 1080 -> 1080p
-		if width == 1920 && height == 1080 {
-			squareStandard1080PImageList = append(squareStandard1080PImageList, currentImagePath)
-			return
-		}
+	} else if width >= caleHorizontalPix(1) && width < caleHorizontalPix(2) {
 		square1KImageList = append(square1KImageList, currentImagePath)
-	} else if width >= 2000 && width < 3000 {
+	} else if width >= caleHorizontalPix(2) && width < caleHorizontalPix(3) {
 		square2KImageList = append(square2KImageList, currentImagePath)
-	} else if width >= 3000 && width < 4000 {
-		// 3840 x 2160 -> 4k
-		if width == 3840 && height == 2160 {
-			squareStandard4KImageList = append(squareStandard4KImageList, currentImagePath)
-			return
-		}
+	} else if width >= caleHorizontalPix(3) && width < caleHorizontalPix(4) {
 		square3KImageList = append(square3KImageList, currentImagePath)
-	} else if width >= 4000 && width < 5000 {
+	} else if width >= caleHorizontalPix(4) && width < caleHorizontalPix(5) {
 		square4KImageList = append(square4KImageList, currentImagePath)
-	} else if width >= 5000 && width < 6000 {
+	} else if width >= caleHorizontalPix(5) && width < caleHorizontalPix(6) {
 		square5KImageList = append(square5KImageList, currentImagePath)
-	} else if width >= 6000 && width < 7000 {
+	} else if width >= caleHorizontalPix(6) && width < caleHorizontalPix(7) {
 		square6KImageList = append(square6KImageList, currentImagePath)
-	} else if width >= 7000 && width < 8000 {
-		// 7680 x 4320 -> 8k
-		if width == 7680 && height == 4320 {
-			squareStandard8KImageList = append(squareStandard8KImageList, currentImagePath)
-			return
-		}
+	} else if width >= caleHorizontalPix(7) && width < caleHorizontalPix(8) {
 		square7KImageList = append(square7KImageList, currentImagePath)
-	} else if width >= 8000 && width < 9000 {
+	} else if width >= caleHorizontalPix(8) && width < caleHorizontalPix(9) {
 		square8KImageList = append(square8KImageList, currentImagePath)
-	} else if width >= 9000 && width < 10000 {
+	} else if width >= caleHorizontalPix(9) && width < caleHorizontalPix(10) {
 		square9KImageList = append(square9KImageList, currentImagePath)
-	} else if width >= 10000 {
+	} else if width >= caleHorizontalPix(10) {
 		squareHKImageList = append(squareHKImageList, currentImagePath)
+	} else {
+		// 未处理的等比图片
+		squareUnHandleImageList = append(squareUnHandleImageList, currentImagePath)
 	}
 }
 
@@ -294,6 +280,7 @@ func handleSquareImage(currentImagePath string, width int, height int, suffix st
 func moveVerticalImage(rootDir string, uid string) {
 	pathSeparator := string(os.PathSeparator)
 	verticalGifImagePath := rootDir + pathSeparator + uid + "_图片_竖屏_GIF"
+	verticalUnHandleImagePath := rootDir + pathSeparator + uid + "_图片_竖屏_未处理"
 	vertical1KImagePath := rootDir + pathSeparator + uid + "_图片_竖屏_1k"
 	vertical2KImagePath := rootDir + pathSeparator + uid + "_图片_竖屏_2k"
 	vertical3KImagePath := rootDir + pathSeparator + uid + "_图片_竖屏_3k"
@@ -307,6 +294,10 @@ func moveVerticalImage(rootDir string, uid string) {
 	if len(verticalGifImageList) > 0 {
 		util.CreateDir(verticalGifImagePath)
 		doMoveFileToDir(verticalGifImageList, verticalGifImagePath)
+	}
+	if len(verticalUnHandleImageList) > 0 {
+		util.CreateDir(verticalUnHandleImagePath)
+		doMoveFileToDir(verticalUnHandleImageList, verticalUnHandleImagePath)
 	}
 	if len(vertical1KImageList) > 0 {
 		util.CreateDir(vertical1KImagePath)
@@ -353,6 +344,7 @@ func moveVerticalImage(rootDir string, uid string) {
 // 移动水平图片
 func moveHorizontalImage(rootDir string, uid string) {
 	pathSeparator := string(os.PathSeparator)
+	horizontalUnHandleImagePath := rootDir + pathSeparator + uid + "_图片_横屏_未处理"
 	horizontalGifImagePath := rootDir + pathSeparator + uid + "_图片_横屏_GIF"
 	horizontal1KImagePath := rootDir + pathSeparator + uid + "_图片_横屏_1k"
 	horizontal2KImagePath := rootDir + pathSeparator + uid + "_图片_横屏_2k"
@@ -366,8 +358,14 @@ func moveHorizontalImage(rootDir string, uid string) {
 	horizontalHKImagePath := rootDir + pathSeparator + uid + "_图片_横屏_原图"
 	horizontalStandard720PImagePath := rootDir + pathSeparator + uid + "_图片_横屏_720P"
 	horizontalStandard1080PImagePath := rootDir + pathSeparator + uid + "_图片_横屏_1080P"
+	horizontalStandard2KImagePath := rootDir + pathSeparator + uid + "_图片_横屏_2KP"
 	horizontalStandard4KImagePath := rootDir + pathSeparator + uid + "_图片_横屏_4KP"
+	horizontalStandard5KImagePath := rootDir + pathSeparator + uid + "_图片_横屏_5KP"
 	horizontalStandard8KImagePath := rootDir + pathSeparator + uid + "_图片_横屏_8KP"
+	if len(horizontalUnHandleImageList) > 0 {
+		util.CreateDir(horizontalUnHandleImagePath)
+		doMoveFileToDir(horizontalUnHandleImageList, horizontalUnHandleImagePath)
+	}
 	if len(horizontalGifImageList) > 0 {
 		util.CreateDir(horizontalGifImagePath)
 		doMoveFileToDir(horizontalGifImageList, horizontalGifImagePath)
@@ -420,9 +418,17 @@ func moveHorizontalImage(rootDir string, uid string) {
 		util.CreateDir(horizontalStandard1080PImagePath)
 		doMoveFileToDir(horizontalStandard1080PImageList, horizontalStandard1080PImagePath)
 	}
+	if len(horizontalStandard2KImageList) > 0 {
+		util.CreateDir(horizontalStandard2KImagePath)
+		doMoveFileToDir(horizontalStandard2KImageList, horizontalStandard2KImagePath)
+	}
 	if len(horizontalStandard4KImageList) > 0 {
 		util.CreateDir(horizontalStandard4KImagePath)
 		doMoveFileToDir(horizontalStandard4KImageList, horizontalStandard4KImagePath)
+	}
+	if len(horizontalStandard5KImageList) > 0 {
+		util.CreateDir(horizontalStandard5KImagePath)
+		doMoveFileToDir(horizontalStandard5KImageList, horizontalStandard5KImagePath)
 	}
 	if len(horizontalStandard8KImageList) > 0 {
 		util.CreateDir(horizontalStandard8KImagePath)
@@ -446,28 +452,31 @@ func handleVerticalImage(currentImagePath string, height int, suffix string) {
 		verticalGifImageList = append(verticalGifImageList, currentImagePath)
 		return
 	}
-	if height < 1000 {
+	if height < caleVerticalPix(1) {
 		normalImageList = append(normalImageList, currentImagePath)
-	} else if height >= 1000 && height < 2000 {
+	} else if height >= caleVerticalPix(1) && height < caleVerticalPix(2) {
 		vertical1KImageList = append(vertical1KImageList, currentImagePath)
-	} else if height >= 2000 && height < 3000 {
+	} else if height >= caleVerticalPix(2) && height < caleVerticalPix(3) {
 		vertical2KImageList = append(vertical2KImageList, currentImagePath)
-	} else if height >= 3000 && height < 4000 {
+	} else if height >= caleVerticalPix(3) && height < caleVerticalPix(4) {
 		vertical3KImageList = append(vertical3KImageList, currentImagePath)
-	} else if height >= 4000 && height < 5000 {
+	} else if height >= caleVerticalPix(4) && height < caleVerticalPix(5) {
 		vertical4KImageList = append(vertical4KImageList, currentImagePath)
-	} else if height >= 5000 && height < 6000 {
+	} else if height >= caleVerticalPix(5) && height < caleVerticalPix(6) {
 		vertical5KImageList = append(vertical5KImageList, currentImagePath)
-	} else if height >= 6000 && height < 7000 {
+	} else if height >= caleVerticalPix(6) && height < caleVerticalPix(7) {
 		vertical6KImageList = append(vertical6KImageList, currentImagePath)
-	} else if height >= 7000 && height < 8000 {
+	} else if height >= caleVerticalPix(7) && height < caleVerticalPix(8) {
 		vertical7KImageList = append(vertical7KImageList, currentImagePath)
-	} else if height >= 8000 && height < 9000 {
+	} else if height >= caleVerticalPix(8) && height < caleVerticalPix(9) {
 		vertical8KImageList = append(vertical8KImageList, currentImagePath)
-	} else if height >= 9000 && height < 10000 {
+	} else if height >= caleVerticalPix(9) && height < caleVerticalPix(10) {
 		vertical9KImageList = append(vertical9KImageList, currentImagePath)
-	} else if height >= 10000 {
+	} else if height >= caleVerticalPix(10) {
 		verticalHKImageList = append(verticalHKImageList, currentImagePath)
+	} else {
+		// 未处理的垂直图片
+		verticalUnHandleImageList = append(verticalUnHandleImageList, currentImagePath)
 	}
 }
 
@@ -477,9 +486,9 @@ func handleHorizontalImage(currentImagePath string, width int, height int, suffi
 		horizontalGifImageList = append(horizontalGifImageList, currentImagePath)
 		return
 	}
-	if width < 1000 {
+	if width < caleHorizontalPix(1) {
 		normalImageList = append(normalImageList, currentImagePath)
-	} else if width >= 1000 && width < 2000 {
+	} else if width >= caleHorizontalPix(1) && width < caleHorizontalPix(2) {
 		// 1280 x 720 -> 720p
 		if width == 1280 && height == 720 {
 			horizontalStandard720PImageList = append(horizontalStandard720PImageList, currentImagePath)
@@ -491,34 +500,47 @@ func handleHorizontalImage(currentImagePath string, width int, height int, suffi
 			return
 		}
 		horizontal1KImageList = append(horizontal1KImageList, currentImagePath)
-	} else if width >= 2000 && width < 3000 {
+	} else if width >= caleHorizontalPix(2) && width < caleHorizontalPix(3) {
+		// 2560 x 1440 -> 2k
+		if width == 2560 && height == 1440 {
+			horizontalStandard2KImageList = append(horizontalStandard2KImageList, currentImagePath)
+			return
+		}
 		horizontal2KImageList = append(horizontal2KImageList, currentImagePath)
-	} else if width >= 3000 && width < 4000 {
+	} else if width >= caleHorizontalPix(3) && width < caleHorizontalPix(4) {
 		// 3840 x 2160 -> 4k
 		if width == 3840 && height == 2160 {
 			horizontalStandard4KImageList = append(horizontalStandard4KImageList, currentImagePath)
 			return
 		}
 		horizontal3KImageList = append(horizontal3KImageList, currentImagePath)
-	} else if width >= 4000 && width < 5000 {
+	} else if width >= caleHorizontalPix(4) && width < caleHorizontalPix(5) {
 		horizontal4KImageList = append(horizontal4KImageList, currentImagePath)
-	} else if width >= 5000 && width < 6000 {
+	} else if width >= caleHorizontalPix(5) && width < caleHorizontalPix(6) {
+		// 5120 x 2880 -> 5k
+		if width == 5120 && height == 2880 {
+			horizontalStandard5KImageList = append(horizontalStandard5KImageList, currentImagePath)
+			return
+		}
 		horizontal5KImageList = append(horizontal5KImageList, currentImagePath)
-	} else if width >= 6000 && width < 7000 {
+	} else if width >= caleHorizontalPix(6) && width < caleHorizontalPix(7) {
 		horizontal6KImageList = append(horizontal6KImageList, currentImagePath)
-	} else if width >= 7000 && width < 8000 {
+	} else if width >= caleHorizontalPix(7) && width < caleHorizontalPix(8) {
 		// 7680 x 4320 -> 8k
 		if width == 7680 && height == 4320 {
 			horizontalStandard8KImageList = append(horizontalStandard8KImageList, currentImagePath)
 			return
 		}
 		horizontal7KImageList = append(horizontal7KImageList, currentImagePath)
-	} else if width >= 8000 && width < 9000 {
+	} else if width >= caleHorizontalPix(8) && width < caleHorizontalPix(9) {
 		horizontal8KImageList = append(horizontal8KImageList, currentImagePath)
-	} else if width >= 9000 && width < 10000 {
+	} else if width >= caleHorizontalPix(9) && width < caleHorizontalPix(10) {
 		horizontal9KImageList = append(horizontal9KImageList, currentImagePath)
-	} else if width >= 10000 {
+	} else if width >= caleHorizontalPix(10) {
 		horizontalHKImageList = append(horizontalHKImageList, currentImagePath)
+	} else {
+		// 未分类的横向图片
+		horizontalUnHandleImageList = append(horizontalUnHandleImageList, currentImagePath)
 	}
 }
 

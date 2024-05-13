@@ -44,7 +44,9 @@ var supportVideoTypes = []string{
 
 // 水平视频
 var horizontalNormalVideoList []string
+var horizontalUnHandleVideoList []string
 var horizontalGifVideoList []string
+
 var horizontal1KVideoList []string
 var horizontal2KVideoList []string
 var horizontal3KVideoList []string
@@ -59,7 +61,9 @@ var horizontalHKVideoList []string
 // 标准横向视频
 var horizontalStandard720PVideoList []string
 var horizontalStandard1080PVideoList []string
+var horizontalStandard2KVideoList []string
 var horizontalStandard4KVideoList []string
+var horizontalStandard5KVideoList []string
 var horizontalStandard8KVideoList []string
 
 // 垂直视频
@@ -75,6 +79,7 @@ var vertical7KVideoList []string
 var vertical8KVideoList []string
 var vertical9KVideoList []string
 var verticalHKVideoList []string
+var verticalUnHandleVideoList []string
 
 // 等比视频
 var squareNormalVideoList []string
@@ -89,10 +94,7 @@ var square7KVideoList []string
 var square8KVideoList []string
 var square9KVideoList []string
 var squareHKVideoList []string
-var squareStandard720PVideoList []string
-var squareStandard1080PVideoList []string
-var squareStandard4KVideoList []string
-var squareStandard8KVideoList []string
+var squareUnHandleVideoList []string
 
 func DoHandleVideo(rootDir string) {
 	// 释放ffprobe
@@ -121,7 +123,7 @@ func DoHandleVideo(rootDir string) {
 				fmt.Printf("=== Video总数: %d, 已读取Info: %d, 成功数: %d, 失败数: %d \n", total, successCount+errorCount+ignoreCount, successCount, errorCount)
 				duration := readVideoDuration(videoFilePath)
 				if duration == 0 {
-					videoPath2DurationMap[videoFilePath] = "0H0M0S"
+					videoPath2DurationMap[videoFilePath] = "00-00-00"
 				} else {
 					videoPath2DurationMap[videoFilePath] = util.SecondsToHms(duration)
 				}
@@ -304,6 +306,9 @@ func moveVerticalVideo(rootDir string) {
 	if len(verticalHKVideoList) > 0 {
 		renameFileV2("[V][原]", verticalHKVideoList)
 	}
+	if len(verticalUnHandleVideoList) > 0 {
+		renameFileV2("[V][UnHandle]", verticalUnHandleVideoList)
+	}
 }
 
 // 移动文件到根目录
@@ -411,11 +416,20 @@ func moveHorizontalVideo(rootDir string) {
 	if len(horizontalStandard1080PVideoList) > 0 {
 		renameFileV2("[H][1080P]", horizontalStandard1080PVideoList)
 	}
+	if len(horizontalStandard2KVideoList) > 0 {
+		renameFileV2("[H][2KP]", horizontalStandard2KVideoList)
+	}
 	if len(horizontalStandard4KVideoList) > 0 {
 		renameFileV2("[H][4KP]", horizontalStandard4KVideoList)
 	}
+	if len(horizontalStandard5KVideoList) > 0 {
+		renameFileV2("[H][5KP]", horizontalStandard5KVideoList)
+	}
 	if len(horizontalStandard8KVideoList) > 0 {
 		renameFileV2("[H][8KP]", horizontalStandard8KVideoList)
+	}
+	if len(horizontalUnHandleVideoList) > 0 {
+		renameFileV2("[H][UnHandle]", horizontalUnHandleVideoList)
 	}
 }
 
@@ -451,17 +465,8 @@ func moveSquareVideo(rootDir string) {
 	if len(squareHKVideoList) > 0 {
 		renameFileV2("[M][原]", squareHKVideoList)
 	}
-	if len(squareStandard720PVideoList) > 0 {
-		renameFileV2("[M][720P]", squareStandard720PVideoList)
-	}
-	if len(squareStandard1080PVideoList) > 0 {
-		renameFileV2("[M][1080P]", squareStandard1080PVideoList)
-	}
-	if len(squareStandard4KVideoList) > 0 {
-		renameFileV2("[M][4KP]", squareStandard4KVideoList)
-	}
-	if len(squareStandard8KVideoList) > 0 {
-		renameFileV2("[M][8KP]", squareStandard8KVideoList)
+	if len(squareUnHandleVideoList) > 0 {
+		renameFileV2("[M][UnHandle]", squareUnHandleVideoList)
 	}
 }
 
@@ -469,7 +474,6 @@ func moveSquareVideo(rootDir string) {
 func moveNormalVideo(rootDir string) {
 	//pathSeparator := string(os.PathSeparator)
 	if len(horizontalNormalVideoList) > 0 {
-		//renameFile(rootDir, "[L]", horizontalNormalVideoList, pathSeparator)
 		renameFileV2("[L]", horizontalNormalVideoList)
 	}
 	if len(verticalNormalVideoList) > 0 {
@@ -508,7 +512,20 @@ func handleVerticalVideo(currentVideoPath string, height int, suffix string) {
 		vertical9KVideoList = append(vertical9KVideoList, currentVideoPath)
 	} else if height >= 10000 {
 		verticalHKVideoList = append(verticalHKVideoList, currentVideoPath)
+	} else {
+		// 未分类的垂直视频
+		verticalUnHandleVideoList = append(verticalUnHandleVideoList, currentVideoPath)
 	}
+}
+
+// 计算水平分辨率
+func caleHorizontalPix(level int) int {
+	return 1024 * level
+}
+
+// 计算垂直分辨率
+func caleVerticalPix(level int) int {
+	return 768 * level
 }
 
 // 处理横向视频
@@ -517,14 +534,9 @@ func handleHorizontalVideo(currentVideoPath string, width int, height int, suffi
 		horizontalGifVideoList = append(horizontalGifVideoList, currentVideoPath)
 		return
 	}
-	if width < 1000 {
-		// 160 × 120
-		// 320 × 180
-		// 320 × 240
-		// 640 × 360
-		// 640 × 480
+	if width < caleHorizontalPix(1) {
 		horizontalNormalVideoList = append(horizontalNormalVideoList, currentVideoPath)
-	} else if width >= 1000 && width < 2000 {
+	} else if width >= caleHorizontalPix(1) && width < caleHorizontalPix(2) {
 		// 1280 x 720 -> 720p
 		if width == 1280 && height == 720 {
 			horizontalStandard720PVideoList = append(horizontalStandard720PVideoList, currentVideoPath)
@@ -536,34 +548,47 @@ func handleHorizontalVideo(currentVideoPath string, width int, height int, suffi
 			return
 		}
 		horizontal1KVideoList = append(horizontal1KVideoList, currentVideoPath)
-	} else if width >= 2000 && width < 3000 {
+	} else if width >= caleHorizontalPix(2) && width < caleHorizontalPix(3) {
+		// 2560 x 1440 -> 2k
+		if width == 2560 && height == 1440 {
+			horizontalStandard2KVideoList = append(horizontalStandard2KVideoList, currentVideoPath)
+			return
+		}
 		horizontal2KVideoList = append(horizontal2KVideoList, currentVideoPath)
-	} else if width >= 3000 && width < 4000 {
+	} else if width >= caleHorizontalPix(3) && width < caleHorizontalPix(4) {
 		// 3840 x 2160 -> 4k
 		if width == 3840 && height == 2160 {
 			horizontalStandard4KVideoList = append(horizontalStandard4KVideoList, currentVideoPath)
 			return
 		}
 		horizontal3KVideoList = append(horizontal3KVideoList, currentVideoPath)
-	} else if width >= 4000 && width < 5000 {
+	} else if width >= caleHorizontalPix(4) && width < caleHorizontalPix(5) {
 		horizontal4KVideoList = append(horizontal4KVideoList, currentVideoPath)
-	} else if width >= 5000 && width < 6000 {
+	} else if width >= caleHorizontalPix(5) && width < caleHorizontalPix(6) {
+		// 5120 x 2880 -> 5k
+		if width == 5120 && height == 2880 {
+			horizontalStandard5KVideoList = append(horizontalStandard5KVideoList, currentVideoPath)
+			return
+		}
 		horizontal5KVideoList = append(horizontal5KVideoList, currentVideoPath)
-	} else if width >= 6000 && width < 7000 {
+	} else if width >= caleHorizontalPix(6) && width < caleHorizontalPix(7) {
 		horizontal6KVideoList = append(horizontal6KVideoList, currentVideoPath)
-	} else if width >= 7000 && width < 8000 {
+	} else if width >= caleHorizontalPix(7) && width < caleHorizontalPix(8) {
 		// 7680 x 4320 -> 8k
 		if width == 7680 && height == 4320 {
 			horizontalStandard8KVideoList = append(horizontalStandard8KVideoList, currentVideoPath)
 			return
 		}
 		horizontal7KVideoList = append(horizontal7KVideoList, currentVideoPath)
-	} else if width >= 8000 && width < 9000 {
+	} else if width >= caleHorizontalPix(8) && width < caleHorizontalPix(9) {
 		horizontal8KVideoList = append(horizontal8KVideoList, currentVideoPath)
-	} else if width >= 9000 && width < 10000 {
+	} else if width >= caleHorizontalPix(9) && width < caleHorizontalPix(10) {
 		horizontal9KVideoList = append(horizontal9KVideoList, currentVideoPath)
-	} else if width >= 10000 {
+	} else if width >= caleHorizontalPix(10) {
 		horizontalHKVideoList = append(horizontalHKVideoList, currentVideoPath)
+	} else {
+		// 未分类的视频
+		horizontalUnHandleVideoList = append(horizontalUnHandleVideoList, currentVideoPath)
 	}
 }
 
@@ -573,48 +598,31 @@ func handleSquareVideo(currentVideoPath string, width int, height int, suffix st
 		squareGifVideoList = append(squareGifVideoList, currentVideoPath)
 		return
 	}
-	if width < 1000 {
+	if width < caleHorizontalPix(1) {
 		squareNormalVideoList = append(squareNormalVideoList, currentVideoPath)
-	} else if width >= 1000 && width < 2000 {
-		// 1280 x 720 -> 720p
-		if width == 1280 && height == 720 {
-			squareStandard720PVideoList = append(squareStandard720PVideoList, currentVideoPath)
-			return
-		}
-		// 1920 x 1080 -> 1080p
-		if width == 1920 && height == 1080 {
-			squareStandard1080PVideoList = append(squareStandard1080PVideoList, currentVideoPath)
-			return
-		}
+	} else if width >= caleHorizontalPix(1) && width < caleHorizontalPix(2) {
 		square1KVideoList = append(square1KVideoList, currentVideoPath)
-	} else if width >= 2000 && width < 3000 {
+	} else if width >= caleHorizontalPix(2) && width < caleHorizontalPix(3) {
 		square2KVideoList = append(square2KVideoList, currentVideoPath)
-	} else if width >= 3000 && width < 4000 {
-		// 3840 x 2160 -> 4k
-		if width == 3840 && height == 2160 {
-			squareStandard4KVideoList = append(squareStandard4KVideoList, currentVideoPath)
-			return
-		}
+	} else if width >= caleHorizontalPix(3) && width < caleHorizontalPix(4) {
 		square3KVideoList = append(square3KVideoList, currentVideoPath)
-	} else if width >= 4000 && width < 5000 {
+	} else if width >= caleHorizontalPix(4) && width < caleHorizontalPix(5) {
 		square4KVideoList = append(square4KVideoList, currentVideoPath)
-	} else if width >= 5000 && width < 6000 {
+	} else if width >= caleHorizontalPix(5) && width < caleHorizontalPix(6) {
 		square5KVideoList = append(square5KVideoList, currentVideoPath)
-	} else if width >= 6000 && width < 7000 {
+	} else if width >= caleHorizontalPix(6) && width < caleHorizontalPix(7) {
 		square6KVideoList = append(square6KVideoList, currentVideoPath)
-	} else if width >= 7000 && width < 8000 {
-		// 7680 x 4320 -> 8k
-		if width == 7680 && height == 4320 {
-			squareStandard8KVideoList = append(squareStandard8KVideoList, currentVideoPath)
-			return
-		}
+	} else if width >= caleHorizontalPix(7) && width < caleHorizontalPix(8) {
 		square7KVideoList = append(square7KVideoList, currentVideoPath)
-	} else if width >= 8000 && width < 9000 {
+	} else if width >= caleHorizontalPix(8) && width < caleHorizontalPix(9) {
 		square8KVideoList = append(square8KVideoList, currentVideoPath)
-	} else if width >= 9000 && width < 10000 {
+	} else if width >= caleHorizontalPix(9) && width < caleHorizontalPix(10) {
 		square9KVideoList = append(square9KVideoList, currentVideoPath)
-	} else if width >= 10000 {
+	} else if width >= caleHorizontalPix(10) {
 		squareHKVideoList = append(squareHKVideoList, currentVideoPath)
+	} else {
+		// 未处理的等比视频
+		squareUnHandleVideoList = append(squareUnHandleVideoList, currentVideoPath)
 	}
 }
 
