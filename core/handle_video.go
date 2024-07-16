@@ -10,6 +10,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -18,7 +19,7 @@ import (
 //go:embed files/ffprobe.exe
 var ffprobeWin64 []byte
 
-var videoTag = "[PickVideo]"                              // 标记文件已经被整理过
+var videoTag = "_[PickVideo]"                             // 标记文件已经被整理过
 var ignoreVideoPathList []string                          // 忽略的文件路径
 var readErrorVideoPathList []string                       // 读取信息异常的路径
 var videoPath2WidthHeightMap = make(map[string]string)    // 视频路径和宽高比
@@ -312,37 +313,43 @@ func moveVerticalVideo(rootDir string) {
 }
 
 // 移动文件到根目录
-func renameFile(rootDir string, modelType string, videoList []string, pathSeparator string) {
-	total := len(videoList)
-	var count = 0
-	bar := goPrint.NewBar(100)
-	bar.SetNotice("=== 重命名文件：")
-	bar.SetGraph(">")
-	for _, videoFilePath := range videoList {
-		wh := videoPath2WidthHeightTagMap[videoFilePath]
-		fileName := vars.GlobalFilePath2FileNameMap[videoFilePath]
-		if strings.Contains(fileName, videoTag) { // 处理过了
-			fileNames := strings.Split(fileName, videoTag)
-			if len(fileNames) == 2 {
-				fileName = fileNames[1]
-				targetFilePath := rootDir + pathSeparator + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + videoTag + fileName
-				err := os.Rename(videoFilePath, targetFilePath)
-				if err != nil {
-					fmt.Printf("=== 重命名异常: %s \n", videoFilePath)
-				}
-			}
-		} else {
-			targetFilePath := rootDir + pathSeparator + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + videoTag + " - " + fileName
-			err := os.Rename(videoFilePath, targetFilePath)
-			if err != nil {
-				fmt.Printf("=== 重命名异常: %s \n", videoFilePath)
-			}
-		}
-		count = count + 1
-		bar.PrintBar(util.CalcPercentage(count, total))
-	}
-	bar.PrintEnd("=== Finish")
-}
+//func renameFile(rootDir string, modelType string, videoList []string, pathSeparator string) {
+//	total := len(videoList)
+//	var count = 0
+//	bar := goPrint.NewBar(100)
+//	bar.SetNotice("=== 重命名文件：")
+//	bar.SetGraph(">")
+//	for _, videoFilePath := range videoList {
+//		wh := videoPath2WidthHeightTagMap[videoFilePath]
+//		fileName := vars.GlobalFilePath2FileNameMap[videoFilePath]
+//		if strings.Contains(fileName, videoTag) { // 处理过了
+//			fileNames := strings.Split(fileName, videoTag)
+//			if len(fileNames) == 2 {
+//				fileName = fileNames[0]
+//				split := strings.Split(fileName, pathSeparator)
+//				if len(split) > 0 {
+//					realFileName := split[len(split)-1]
+//					//targetFilePath := rootDir + pathSeparator + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + videoTag + fileName
+//					targetFilePath := rootDir + pathSeparator + realFileName + videoTag + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh
+//					err := os.Rename(videoFilePath, targetFilePath)
+//					if err != nil {
+//						fmt.Printf("=== 重命名异常: %s \n", videoFilePath)
+//					}
+//				}
+//			}
+//		} else {
+//			//targetFilePath := rootDir + pathSeparator + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + videoTag + " - " + fileName
+//			targetFilePath := rootDir + pathSeparator + fileName + videoTag + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh
+//			err := os.Rename(videoFilePath, targetFilePath)
+//			if err != nil {
+//				fmt.Printf("=== 重命名异常: %s \n", videoFilePath)
+//			}
+//		}
+//		count = count + 1
+//		bar.PrintBar(util.CalcPercentage(count, total))
+//	}
+//	bar.PrintEnd("=== Finish")
+//}
 
 // 移动文件到原目录
 func renameFileV2(modelType string, videoList []string) {
@@ -355,18 +362,41 @@ func renameFileV2(modelType string, videoList []string) {
 		wh := videoPath2WidthHeightTagMap[videoFilePath]
 		fileName := vars.GlobalFilePath2FileNameMap[videoFilePath]
 		filePath := util.GetFileDirectory(videoFilePath)
-		if strings.Contains(fileName, videoTag) { // 处理过了
-			fileNames := strings.Split(fileName, videoTag)
-			if len(fileNames) == 2 {
-				fileName = fileNames[1]
-				targetFilePath := filePath + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + videoTag + fileName
-				err := os.Rename(videoFilePath, targetFilePath)
-				if err != nil {
-					fmt.Printf("=== 重命名异常: %s \n", videoFilePath)
-				}
-			}
-		} else {
-			targetFilePath := filePath + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + videoTag + " - " + fileName
+		//if strings.Contains(fileName, videoTag) { // 处理过了
+		//	fileNames := strings.Split(fileName, videoTag)
+		//	if len(fileNames) == 2 {
+		//		fileName = fileNames[0]
+		//		split := strings.Split(fileName, string(os.PathSeparator))
+		//		if len(split) > 0 {
+		//			realFileName := split[len(split)-1]
+		//			//targetFilePath := filePath + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + videoTag + fileName
+		//			ext := filepath.Ext(fileNames[1])
+		//			lowExt := strings.ToLower(ext)
+		//			header := strings.ReplaceAll(realFileName, ext, "")
+		//			targetFilePath := filePath + header + videoTag + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + lowExt
+		//			err := os.Rename(videoFilePath, targetFilePath)
+		//			if err != nil {
+		//				fmt.Printf("=== 重命名异常: %s \n", videoFilePath)
+		//			}
+		//		}
+		//	}
+		//} else {
+		//	//targetFilePath := filePath + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + videoTag + " - " + fileName
+		//	ext := filepath.Ext(fileName)
+		//	lowExt := strings.ToLower(ext)
+		//	header := strings.ReplaceAll(fileName, ext, "")
+		//	targetFilePath := filePath + header + videoTag + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + lowExt
+		//	err := os.Rename(videoFilePath, targetFilePath)
+		//	if err != nil {
+		//		fmt.Printf("=== 重命名异常: %s \n", videoFilePath)
+		//	}
+		//}
+		if strings.Contains(fileName, videoTag) == false {
+			//targetFilePath := filePath + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + videoTag + " - " + fileName
+			ext := filepath.Ext(fileName)
+			lowExt := strings.ToLower(ext)
+			header := strings.ReplaceAll(fileName, ext, "")
+			targetFilePath := filePath + header + videoTag + "[" + videoPath2DurationMap[videoFilePath] + "]" + modelType + wh + lowExt
 			err := os.Rename(videoFilePath, targetFilePath)
 			if err != nil {
 				fmt.Printf("=== 重命名异常: %s \n", videoFilePath)
