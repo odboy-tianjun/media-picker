@@ -17,7 +17,7 @@ type FileScanner struct {
 
 func (FileScanner) DoScan(rootDir string) {
 	fmt.Printf("=== 开始扫描文件 \n")
-	if err := filepath.Walk(rootDir, visit); err != nil {
+	if err := filepath.Walk(rootDir, visitFile); err != nil {
 		log.Fatal(err)
 	}
 	doReadFileMimeInfo()
@@ -76,9 +76,63 @@ func (FileScanner) DoFilter() {
 	}
 	bar.PrintEnd("=== Finish")
 }
+func countFiles(dir string) (int, error) {
+	var count int
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			count++
+		}
+		return nil
+	})
+	return count, err
+}
+
+func (s FileScanner) DoPickerDir(dir string, fileCnt int) {
+	if err := filepath.Walk(dir, visitDir); err != nil {
+		log.Fatal(err)
+	}
+	for _, s2 := range vars.GlobalSubDirPathList {
+		// 是整理过的文件夹
+		if strings.Contains(s2, "_图片_") {
+			cnt, err := countFiles(s2)
+			// 满足文件数量
+			if err == nil && cnt >= fileCnt {
+				vars.GlobalNeedMoveSubDirPathList = append(vars.GlobalNeedMoveSubDirPathList, s2)
+			} else {
+				vars.GlobalNeedReScanSubDirPathList = append(vars.GlobalNeedReScanSubDirPathList, s2)
+			}
+		}
+	}
+	pathSeparator := string(os.PathSeparator)
+	pickerOkDir := dir + pathSeparator + "PickerOk"
+	pickerRescanDir := dir + pathSeparator + "PickerRescanDir"
+	util.CreateDir(pickerOkDir)
+	util.CreateDir(pickerRescanDir)
+	for _, originPath := range vars.GlobalNeedMoveSubDirPathList {
+		targetPath := pickerOkDir + pathSeparator + filepath.Base(originPath)
+		os.Rename(originPath, targetPath)
+	}
+	for _, originPath := range vars.GlobalNeedReScanSubDirPathList {
+		targetPath := pickerRescanDir + pathSeparator + filepath.Base(originPath)
+		os.Rename(originPath, targetPath)
+	}
+}
+
+func visitDir(currentPath string, info os.FileInfo, err error) error {
+	if err != nil {
+		return err // 如果有错误，直接返回
+	}
+	if info.IsDir() {
+		vars.GlobalSubDirPathList = append(vars.GlobalSubDirPathList, currentPath)
+	}
+	return nil
+}
 
 // 定义walkFn回调函数visit
-func visit(currentPath string, info os.FileInfo, err error) error {
+func visitFile(currentPath string, info os.FileInfo, err error) error {
 	if err != nil {
 		return err // 如果有错误，直接返回
 	}

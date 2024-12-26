@@ -1,7 +1,7 @@
-rm -f OdMediaPicker.exe
-rm -f OdMediaPickerRelease.exe
+rm -f OdImageWidthPicker.exe
+rm -f OdImageWidthPickerRelease.exe
 # build
-go build -o OdMediaPicker.exe main.go
+go build -o OdImageWidthPicker.exe main.go
 # upx compress
-./upx -o OdMediaPickerRelease.exe OdMediaPicker.exe
-rm -f OdMediaPicker.exe
+./upx -o OdImageWidthPickerRelease.exe OdImageWidthPicker.exe
+rm -f OdImageWidthPicker.exe
