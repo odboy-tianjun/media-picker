@@ -629,14 +629,14 @@ func isSupportVideo(videoType string) bool {
 }
 
 // 批量移动文件到目录
-func doMoveFileToDir(filePatnList []string, videoDirPath string) {
-	total := len(filePatnList)
+func doMoveFileToDir(filePathList []string, videoDirPath string) {
+	total := len(filePathList)
 	var count = 0
 	bar := goPrint.NewBar(100)
 	bar.SetNotice("=== 移动文件到目录：")
 	bar.SetGraph(">")
 	pathSeparator := string(os.PathSeparator)
-	for _, videoFilePath := range filePatnList {
+	for _, videoFilePath := range filePathList {
 		moveFileToDir(videoFilePath, videoDirPath+pathSeparator)
 		count = count + 1
 		bar.PrintBar(util.CalcPercentage(count, total))
